@@ -63,6 +63,9 @@ namespace AsIKnow.SocialHelpers
 
                         break;
                     }
+                case "instagram":
+
+                    break;
                 default:
                     break;
             }

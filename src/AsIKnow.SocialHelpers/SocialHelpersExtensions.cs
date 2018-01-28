@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace AsIKnow.SocialHelpers
 {
@@ -32,6 +36,26 @@ namespace AsIKnow.SocialHelpers
                 googleOptions.Scope.Add("email");
                 googleOptions.Scope.Add("openid");
                 googleOptions.SaveTokens = true;
+            });
+            ext.AddAuthentication().AddInstagram(instagramOptions =>
+            {
+                instagramOptions.ClientId = options.Instagram.ClientId;
+                instagramOptions.ClientSecret = options.Instagram.ClientSecret;
+                instagramOptions.SignInScheme = IdentityConstants.ExternalScheme;
+                instagramOptions.UseSignedRequests = true;
+                instagramOptions.Events.OnCreatingTicket = ctx =>
+                {
+                    ctx.Identity.AddClaim(new Claim("sub", ctx.TokenResponse.Response["user"]["id"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim("email", ""));
+                    ctx.Identity.AddClaim(new Claim(ClaimTypes.Email, ""));
+                    ctx.Identity.AddClaim(new Claim("name", ctx.TokenResponse.Response["user"]["username"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim("full_name", ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim("given_name", ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim(ClaimTypes.GivenName, ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, ctx.TokenResponse.Response["user"]["username"].Value<string>()));
+                    ctx.Identity.AddClaim(new Claim(ExternalLoginExtensions.PictureClaim, ctx.TokenResponse.Response["user"]["profile_picture"].Value<string>()));
+                    return Task.CompletedTask;
+                };
             });
 
             return ext;
