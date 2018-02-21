@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -82,9 +83,16 @@ namespace AsIKnow.SocialHelpers
                             ctx.Identity.AddClaim(new Claim("email", ""));
                             ctx.Identity.AddClaim(new Claim(ClaimTypes.Email, ""));
                         }
+
+                        string name = ctx.TokenResponse.Response["user"]["full_name"].Value<string>()?.Split(' ')?.FirstOrDefault()??"";
+                        string surname = ctx.TokenResponse.Response["user"]["full_name"].Value<string>().Replace($"{name} ","");
+
                         ctx.Identity.AddClaim(new Claim("name", ctx.TokenResponse.Response["user"]["username"].Value<string>()));
                         ctx.Identity.AddClaim(new Claim("full_name", ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
-                        ctx.Identity.AddClaim(new Claim("given_name", ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
+                        ctx.Identity.AddClaim(new Claim("given_name", name));
+                        ctx.Identity.AddClaim(new Claim("givenname", name));
+                        ctx.Identity.AddClaim(new Claim("family_name", surname));
+                        ctx.Identity.AddClaim(new Claim("surname", surname));
                         ctx.Identity.AddClaim(new Claim(ClaimTypes.GivenName, ctx.TokenResponse.Response["user"]["full_name"].Value<string>()));
                         ctx.Identity.AddClaim(new Claim(ExternalLoginExtensions.PictureClaim, ctx.TokenResponse.Response["user"]["profile_picture"].Value<string>()));
 
